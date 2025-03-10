@@ -14,17 +14,25 @@ dotenv.config();
 
 const app = express();
 
-// Configuration de la base de données SQL Server
+
+console.log("DB_SERVER:", process.env.DB_SERVER);
+console.log("DB_PORT:", process.env.DB_PORT);
+
+// Update your connection code to explicitly use port 1433
 const dbConfig = {
   user: process.env.DB_USER!,
   password: process.env.DB_PASSWORD!,
   server: process.env.DB_SERVER!,
+  port: 1433, // Explicitly set to 1433 for SQL Server
   database: process.env.DB_NAME!,
   options: {
     encrypt: true,
     trustServerCertificate: true,
   },
 };
+
+// Make sure SQL Server is actually running on your machine
+// You can verify this using SQL Server Configuration Manager
 
 // Middleware pour vérifier si l'utilisateur est authentifié
 function isLoggedIn(req: any, res: Response, next: NextFunction) {

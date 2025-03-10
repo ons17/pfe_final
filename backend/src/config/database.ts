@@ -1,27 +1,23 @@
-import sql from 'mssql';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import sql from "mssql";
 
 const dbConfig = {
   user: process.env.DB_USER!,
   password: process.env.DB_PASSWORD!,
-  server: process.env.DB_SERVER!,
+  server: process.env.DB_SERVER!.split(",")[0], // Supprime le port ici
+  port: parseInt(process.env.DB_PORT!) || 1433, // Port défini dans .env
   database: process.env.DB_NAME!,
   options: {
-    encrypt: true,
+    encrypt: true, // True si Azure, false sinon
     trustServerCertificate: true,
   },
 };
 
-// Fonction pour établir la connexion à la base de données
-export const createConnection = async () => {
+export const pool = new sql.ConnectionPool(dbConfig);
+export const connectDB = async () => {
   try {
-    const pool = await sql.connect(dbConfig);
-    console.log('Connexion à la base de données réussie');
-    return pool;
+    await pool.connect();
+    console.log("✅ Connexion réussie à SQL Server !");
   } catch (error) {
-    console.error('Erreur de connexion à la base de données:', error);
-    throw error;
+    console.error("❌ Erreur de connexion à la base de données :", error);
   }
 };
