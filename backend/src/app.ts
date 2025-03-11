@@ -14,8 +14,10 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());  // Make sure to add this to parse JSON bodies
-
-app.use('/admin', adminRoutes);  // Mount the admin routes
+// Middleware for body parsing and session management
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use('/admin', adminRoutes);
 
 const dbConfig = {
   user: process.env.DB_USER!,
@@ -45,10 +47,11 @@ app.use(passport.session());
 // Google OAuth Routes
 app.get('/auth/google',
   passport.authenticate('google', {
-    scope: ['email', 'profile'],
+    scope: ['profile', 'email'],  // This should include the 'profile' and 'email' scopes
     prompt: 'select_account'
   })
 );
+
 
 app.get('/auth/google/callback',
   passport.authenticate('google', {
@@ -56,6 +59,11 @@ app.get('/auth/google/callback',
     failureRedirect: '/auth/google/failure'
   })
 );
+
+app.get('/auth/google/failure', (req: Request, res: Response) => {
+  res.status(401).json({ message: "Authentication failed. Please try again." });
+});
+
 
 app.get('/auth/google/failure', (req: Request, res: Response) => {
   res.status(401).json({ message: "Authentication failed" });
