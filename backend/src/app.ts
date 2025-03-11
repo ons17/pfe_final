@@ -9,10 +9,17 @@ import dotenv from 'dotenv';
 import './auth';  // Import passport configuration
 import { body, validationResult } from 'express-validator';
 import adminRoutes from './routes/adminuser';
+import cors from 'cors';  // Import cors
+
 
 dotenv.config();
 
 const app = express();
+// CORS configuration - Allow requests from Vue frontend
+app.use(cors({
+  origin: 'http://localhost:5173',  // Default Vue dev server port
+  credentials: true  // Important for cookies/sessions
+}));
 app.use(express.json());  // Make sure to add this to parse JSON bodies
 // Middleware for body parsing and session management
 app.use(bodyParser.json());
@@ -44,6 +51,22 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Current user endpoint for frontend authentication state
+app.get('/api/current-user', (req: any, res: Response) => {
+  if (req.isAuthenticated()) {
+    res.json({ 
+      isAuthenticated: true, 
+      user: req.user 
+    });
+  } else {
+    res.json({ 
+      isAuthenticated: false, 
+      user: null 
+    });
+  }
+});
+
+
 // Google OAuth Routes
 app.get('/auth/google',
   passport.authenticate('google', {
@@ -57,7 +80,12 @@ app.get('/auth/google/callback',
   passport.authenticate('google', {
     successRedirect: '/admin/dashboard',
     failureRedirect: '/auth/google/failure'
-  })
+  }),
+
+  (req: Request, res: Response) => {
+    // Redirect to the frontend URL instead of server route
+    res.redirect('http://localhost:5173/admin/dashboard');
+  }
 );
 
 app.get('/auth/google/failure', (req: Request, res: Response) => {
